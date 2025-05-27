@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026</title>
+    <title>Thư Tình Dành Cho Em</title>
     <style>
         * {
             margin: 0;
@@ -124,12 +124,31 @@
             90% { opacity: 1; }
             100% { opacity: 0; transform: translateY(-100vh) rotate(360deg); }
         }
+
+        .security-warning {
+            background: rgba(231, 76, 60, 0.2);
+            border: 2px solid #e74c3c;
+            color: #c0392b;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { background: rgba(231, 76, 60, 0.2); }
+            50% { background: rgba(231, 76, 60, 0.3); }
+            100% { background: rgba(231, 76, 60, 0.2); }
+        }
     </style>
 </head>
 <body>
     <div class="sparkles" id="sparkles"></div>
     <div class="container">
-
+        <div class="heart"></div>
+        <h1 class="title">Vui lòng quay lại vào 1/1/2026</h1>
         
         <div id="content">
             <!-- Nội dung sẽ được JavaScript điều khiển -->
@@ -137,11 +156,10 @@
     </div>
 
     <script>
-        // Dữ liệu thư cho từng năm
-        const letters = {
-            2026: {
-                title: "Năm đầu tiên của chúng ta",
-                content: `Em yêu của anh,
+        // Mã hóa đơn giản cho dữ liệu thư
+        const encryptedLetter2026 = {
+            title: btoa("Năm đầu tiên của chúng ta"),
+            content: btoa(`Em yêu của anh,
 
 Đây là lá thư đầu tiên trong hành trình 15 năm mà anh muốn gửi đến em. Hôm nay, khi em đọc những dòng này, có lẽ chúng ta đã trải qua một năm đầy ý nghĩa bên nhau.
 
@@ -149,10 +167,9 @@ Anh muốn em biết rằng, mỗi ngày trôi qua, tình yêu của anh dành c
 
 Năm 2026 này, anh hy vọng chúng ta sẽ cùng nhau xây dựng những kỷ niệm đẹp, cùng nhau vượt qua mọi khó khăn và luôn yêu thương nhau như ngày đầu tiên.
 
-Hẹn gặp em vào năm sau, với một tình yêu còn mãnh liệt hơn.`,
-                signature: "Anh yêu em mãi mãi ❤️"
-            },
-            
+Hẹn gặp em vào năm sau, với một tình yêu còn mãnh liệt hơn.`),
+            signature: btoa("Anh yêu em mãi mãi ❤️")
+        };
 
         function createSparkles() {
             const sparklesContainer = document.getElementById('sparkles');
@@ -165,65 +182,228 @@ Hẹn gặp em vào năm sau, với một tình yêu còn mãnh liệt hơn.`,
             }
         }
 
-        function getCurrentYear() {
-            return new Date().getFullYear();
-        }
-
-        function getNextAllowedYear() {
-            const currentYear = getCurrentYear();
-            const availableYears = Object.keys(letters).map(Number).sort();
-            
-            for (let year of availableYears) {
-                if (year > currentYear) {
-                    return year;
+        // Hàm kiểm tra thời gian thực từ server (bảo mật hơn)
+        async function getRealDateTime() {
+            try {
+                // Sử dụng multiple API để cross-check
+                const apis = [
+                    'https://worldtimeapi.org/api/timezone/Asia/Ho_Chi_Minh',
+                    'https://api.timezonedb.com/v2.1/get-zone?key=demo&format=json&by=zone&zone=Asia/Ho_Chi_Minh'
+                ];
+                
+                let realDate = null;
+                
+                for (let api of apis) {
+                    try {
+                        const response = await fetch(api);
+                        const data = await response.json();
+                        
+                        if (api.includes('worldtimeapi')) {
+                            realDate = new Date(data.datetime);
+                        } else if (api.includes('timezonedb')) {
+                            realDate = new Date(data.timestamp * 1000);
+                        }
+                        
+                        if (realDate) break;
+                    } catch (e) {
+                        continue;
+                    }
                 }
+                
+                return realDate || new Date();
+            } catch (error) {
+                // Fallback với nhiều phương pháp kiểm tra
+                return await fallbackTimeCheck();
             }
-            return null;
         }
 
-        function displayContent() {
-            const currentYear = getCurrentYear();
+        async function fallbackTimeCheck() {
+            try {
+                // Kiểm tra qua multiple sources
+                const sources = [
+                    () => fetch('https://httpbin.org/headers').then(r => r.json()).then(data => new Date(data.headers.Date)),
+                    () => fetch('https://api.github.com').then(r => new Date(r.headers.get('date'))),
+                    () => new Date() // Last resort
+                ];
+                
+                for (let source of sources) {
+                    try {
+                        const date = await source();
+                        if (date && !isNaN(date.getTime())) {
+                            return date;
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                return new Date();
+            } catch (error) {
+                return new Date();
+            }
+        }
+
+        // Kiểm tra tính toàn vẹn của thời gian hệ thống
+        function detectTimeManipulation() {
+            const checks = [];
+            
+            // Check 1: So sánh với performance.now()
+            const perfStart = performance.now();
+            const dateStart = Date.now();
+            setTimeout(() => {
+                const perfEnd = performance.now();
+                const dateEnd = Date.now();
+                const perfDiff = perfEnd - perfStart;
+                const dateDiff = dateEnd - dateStart;
+                
+                if (Math.abs(perfDiff - dateDiff) > 100) {
+                    checks.push(false);
+                } else {
+                    checks.push(true);
+                }
+            }, 50);
+            
+            // Check 2: Kiểm tra timezone
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            if (!timezone || timezone === 'UTC') {
+                checks.push(false);
+            } else {
+                checks.push(true);
+            }
+            
+            // Check 3: Kiểm tra tốc độ thời gian
+            let lastTime = Date.now();
+            const timeCheck = setInterval(() => {
+                const currentTime = Date.now();
+                const diff = currentTime - lastTime;
+                if (diff < 900 || diff > 1100) { // Should be ~1000ms
+                    checks.push(false);
+                    clearInterval(timeCheck);
+                }
+                lastTime = currentTime;
+            }, 1000);
+            
+            return checks.every(check => check);
+        }
+
+        async function displayContent() {
             const contentDiv = document.getElementById('content');
             
-            if (letters[currentYear]) {
-                // Hiển thị thư của năm hiện tại
-                const letter = letters[currentYear];
-                contentDiv.innerHTML = `
-                    <div class="year-indicator">Năm ${currentYear}</div>
-                    <h2 style="color: #3498db; margin-bottom: 20px;">${letter.title}</h2>
-                    <div class="letter-content">
-                        ${letter.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}
-                        <div class="signature">${letter.signature}</div>
-                    </div>
-                `;
-            } else {
-                // Hiển thị thông báo chờ
-                const nextYear = getNextAllowedYear();
-                if (nextYear) {
+            try {
+                // Lấy thời gian thực
+                const realDate = await getRealDateTime();
+                const currentYear = realDate.getFullYear();
+                const currentMonth = realDate.getMonth() + 1;
+                const currentDay = realDate.getDate();
+                
+                // Kiểm tra manipulation
+                const systemIntegrity = detectTimeManipulation();
+                
+                if (!systemIntegrity) {
+                    contentDiv.innerHTML = `
+                        <div class="security-warning">
+                            ⚠️ Phát hiện thao tác thời gian hệ thống! ⚠️
+                            <br>Vui lòng sử dụng thời gian thực để xem nội dung.
+                        </div>
+                        <div class="waiting-message">
+                            Hãy kiểm tra lại cài đặt thời gian trên thiết bị!
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Kiểm tra điều kiện hiển thị
+                if (currentYear === 2026 && currentMonth === 1 && currentDay === 1) {
+                    // Hiển thị thư năm 2026
+                    contentDiv.innerHTML = `
+                        <div class="year-indicator">🎊 Năm 2026 🎊</div>
+                        <h2 style="color: #3498db; margin-bottom: 20px;">${atob(encryptedLetter2026.title)}</h2>
+                        <div class="letter-content">
+                            ${atob(encryptedLetter2026.content).replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}
+                            <div class="signature">${atob(encryptedLetter2026.signature)}</div>
+                        </div>
+                        <div style="margin-top: 30px; padding: 20px; background: rgba(39, 174, 96, 0.1); border-radius: 15px; color: #27ae60;">
+                            <p>💕 Đây là lá thư đầu tiên trong hành trình 15 năm của chúng ta!</p>
+                            <p style="margin-top: 10px; font-style: italic;">Hẹn gặp em vào 1/1/2027 để đọc lá thư tiếp theo...</p>
+                        </div>
+                    `;
+                } else if (currentYear >= 2026) {
+                    // Các năm sau 2026 nhưng chưa đến ngày
+                    const nextYear = currentYear === 2026 ? 2027 : currentYear + 1;
+                    const daysUntilNext = Math.ceil((new Date(nextYear, 0, 1) - realDate) / (1000 * 60 * 60 * 24));
+                    
                     contentDiv.innerHTML = `
                         <div class="waiting-message">
-                            Vui lòng quay lại vào 1/1/${nextYear}
+                            💌 Lá thư tiếp theo sẽ được mở vào 1/1/${nextYear}
+                        </div>
+                        <div class="countdown">
+                            Còn ${daysUntilNext} ngày nữa...
+                        </div>
+                        <div style="margin-top: 20px; color: #7f8c8d; font-style: italic;">
+                            Hãy kiên nhẫn đợi nhé em yêu! 💕
                         </div>
                     `;
                 } else {
+                    // Trước năm 2026
+                    const target2026 = new Date(2026, 0, 1);
+                    const daysUntil2026 = Math.ceil((target2026 - realDate) / (1000 * 60 * 60 * 24));
+                    
                     contentDiv.innerHTML = `
-                        <div style="color: #27ae60; font-size: 1.5em; margin: 30px 0;">
-                            🎉 Chúc mừng! Bạn đã đọc hết tất cả các lá thư! 🎉
+                        <div class="waiting-message">
+                            💝 Vui lòng quay lại vào 1/1/2026
                         </div>
-                        <p style="color: #7f8c8d; font-style: italic;">
-                            Hành trình 15 năm đã hoàn thành. Tình yêu vẫn mãi bền vững! 💕
-                        </p>
+                        <div style="margin: 20px 0; padding: 20px; background: rgba(142, 68, 173, 0.1); border-radius: 15px;">
+                            <div style="color: #8e44ad; font-size: 1.4em; margin-bottom: 10px;">⏰ Đếm ngược</div>
+                            <div class="countdown">Còn ${daysUntil2026} ngày nữa...</div>
+                        </div>
+                        <div style="color: #7f8c8d; font-style: italic; line-height: 1.6;">
+                            Em yêu ơi, anh đã chuẩn bị một hành trình đặc biệt<br>
+                            gồm 15 lá thư tình sẽ được gửi đến em mỗi năm.<br>
+                            Hãy kiên nhẫn chờ đợi nhé! 💕
+                        </div>
                     `;
                 }
+                
+            } catch (error) {
+                contentDiv.innerHTML = `
+                    <div class="security-warning">
+                        ⚠️ Không thể xác minh thời gian! ⚠️
+                        <br>Vui lòng kiểm tra kết nối internet và thử lại.
+                    </div>
+                `;
             }
         }
+
+        // Ngăn chặn debug
+        (function() {
+            setInterval(function() {
+                if (window.console && (console.__proto__.constructor.name === 'Console' || console.constructor.name === 'Console')) {
+                    try {
+                        throw new Error('Debug detected');
+                    } catch (e) {
+                        console.clear();
+                    }
+                }
+            }, 1000);
+        })();
 
         // Khởi tạo trang
         createSparkles();
         displayContent();
 
-        // Cập nhật mỗi giờ để kiểm tra năm mới
-        setInterval(displayContent, 3600000);
+        // Cập nhật mỗi phút để kiểm tra thời gian
+        setInterval(displayContent, 60000);
+
+        // Kiểm tra lại khi focus vào tab
+        window.addEventListener('focus', displayContent);
+        
+        // Ngăn chặn right-click và F12
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
