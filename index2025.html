@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .heart {
+            font-size: 60px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .waiting-message {
+            font-size: 1.8em;
+            color: #e74c3c;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 15px;
+            border-left: 5px solid #e74c3c;
+        }
+
+        .countdown {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin: 20px 0;
+        }
+
+        .letter-content {
+            font-size: 1.3em;
+            line-height: 1.8;
+            color: #2c3e50;
+            text-align: left;
+            margin: 30px 0;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .signature {
+            font-size: 1.2em;
+            color: #8e44ad;
+            font-style: italic;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .year-indicator {
+            font-size: 1.5em;
+            color: #27ae60;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(39, 174, 96, 0.1);
+            border-radius: 25px;
+            display: inline-block;
+        }
+
+        .sparkles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            animation: sparkle 3s linear infinite;
+        }
+
+        @keyframes sparkle {
+            0% { opacity: 0; transform: translateY(100vh) rotate(0deg); }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-100vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sparkles" id="sparkles"></div>
+    <div class="container">
+
+        
+        <div id="content">
+            <!-- Nội dung sẽ được JavaScript điều khiển -->
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu thư cho từng năm
+        const letters = {
+            2026: {
+                title: "Năm đầu tiên của chúng ta",
+                content: `Em yêu của anh,
+
+Đây là lá thư đầu tiên trong hành trình 15 năm mà anh muốn gửi đến em. Hôm nay, khi em đọc những dòng này, có lẽ chúng ta đã trải qua một năm đầy ý nghĩa bên nhau.
+
+Anh muốn em biết rằng, mỗi ngày trôi qua, tình yêu của anh dành cho em lại càng sâu đậm thêm. Em là ánh sáng cuối đường hầm, là niềm hy vọng trong những ngày tăm tối nhất của anh.
+
+Năm 2026 này, anh hy vọng chúng ta sẽ cùng nhau xây dựng những kỷ niệm đẹp, cùng nhau vượt qua mọi khó khăn và luôn yêu thương nhau như ngày đầu tiên.
+
+Hẹn gặp em vào năm sau, với một tình yêu còn mãnh liệt hơn.`,
+                signature: "Anh yêu em mãi mãi ❤️"
+            },
+            
+
+        function createSparkles() {
+            const sparklesContainer = document.getElementById('sparkles');
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                sparklesContainer.appendChild(sparkle);
+            }
+        }
+
+        function getCurrentYear() {
+            return new Date().getFullYear();
+        }
+
+        function getNextAllowedYear() {
+            const currentYear = getCurrentYear();
+            const availableYears = Object.keys(letters).map(Number).sort();
+            
+            for (let year of availableYears) {
+                if (year > currentYear) {
+                    return year;
+                }
+            }
+            return null;
+        }
+
+        function displayContent() {
+            const currentYear = getCurrentYear();
+            const contentDiv = document.getElementById('content');
+            
+            if (letters[currentYear]) {
+                // Hiển thị thư của năm hiện tại
+                const letter = letters[currentYear];
+                contentDiv.innerHTML = `
+                    <div class="year-indicator">Năm ${currentYear}</div>
+                    <h2 style="color: #3498db; margin-bottom: 20px;">${letter.title}</h2>
+                    <div class="letter-content">
+                        ${letter.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}
+                        <div class="signature">${letter.signature}</div>
+                    </div>
+                `;
+            } else {
+                // Hiển thị thông báo chờ
+                const nextYear = getNextAllowedYear();
+                if (nextYear) {
+                    contentDiv.innerHTML = `
+                        <div class="waiting-message">
+                            Vui lòng quay lại vào 1/1/${nextYear}
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = `
+                        <div style="color: #27ae60; font-size: 1.5em; margin: 30px 0;">
+                            🎉 Chúc mừng! Bạn đã đọc hết tất cả các lá thư! 🎉
+                        </div>
+                        <p style="color: #7f8c8d; font-style: italic;">
+                            Hành trình 15 năm đã hoàn thành. Tình yêu vẫn mãi bền vững! 💕
+                        </p>
+                    `;
+                }
+            }
+        }
+
+        // Khởi tạo trang
+        createSparkles();
+        displayContent();
+
+        // Cập nhật mỗi giờ để kiểm tra năm mới
+        setInterval(displayContent, 3600000);
+    </script>
+</body>
+</html>
